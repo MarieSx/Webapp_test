@@ -156,12 +156,12 @@
         left: 0;
         right: 0;
         height: 3px;
-        background: var(--card-color, linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1));
+        background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
     }
     
     .insight-header {
         display: flex;
-        justify-content: between;
+        justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 15px;
     }
@@ -173,10 +173,6 @@
         align-items: center;
         gap: 10px;
         flex: 1;
-    }
-    
-    .country-flag {
-        font-size: 1.5rem;
     }
     
     .insight-time {
@@ -401,7 +397,9 @@
     <div class="market-overview">
         <h2 style="margin-bottom: 20px; font-size: 1.5rem;">📊 Market Overview</h2>
         <div class="market-summary" id="marketSummary">
-            <!-- Market summary will be populated here -->
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
         </div>
         <div class="last-updated" id="lastUpdated">Loading global economic data...</div>
     </div>
@@ -414,7 +412,9 @@
     
     <div id="indicators-tab" class="tab-content active">
         <div class="insights-grid" id="insightsGrid">
-            <!-- Indicator cards will be populated here -->
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
         </div>
     </div>
     
@@ -445,7 +445,9 @@
                     🏭 Sector Recommendations
                 </div>
                 <div class="sector-recommendations" id="sectorRecs">
-                    <!-- Sector recommendations will be populated here -->
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
                 </div>
             </div>
             
@@ -464,83 +466,40 @@
 <button class="refresh-btn" id="refreshBtn" onclick="loadAllData()" title="Refresh All Data">↻</button>
 
 <script>
-    // Global economic indicators configuration
-    const GLOBAL_INDICATORS = {
-        // Major Economies
-        us: {
-            name: 'United States',
-            flag: '🇺🇸',
-            color: '#1f77b4',
-            indicators: {
-                gdp: { fredId: 'GDPC1', name: 'GDP Growth', unit: '%' },
-                inflation: { fredId: 'CPIAUCSL', name: 'Inflation', unit: '%' },
-                unemployment: { fredId: 'UNRATE', name: 'Unemployment', unit: '%' },
-                interest: { fredId: 'FEDFUNDS', name: 'Fed Rate', unit: '%' }
-            },
-            markets: ['^GSPC', '^DJI', '^IXIC']
-        },
-        eu: {
-            name: 'European Union',
-            flag: '🇪🇺',
-            color: '#ff7f0e',
-            indicators: {
-                gdp: { oecdId: 'QNA.DEU.B1_GE.CARSA.Q', name: 'GDP Growth', unit: '%' },
-                inflation: { name: 'HICP Inflation', unit: '%' },
-                unemployment: { name: 'Unemployment', unit: '%' }
-            },
-            markets: ['^STOXX50E', '^GDAXI', '^FCHI']
-        },
-        china: {
-            name: 'China',
-            flag: '🇨🇳',
-            color: '#2ca02c',
-            indicators: {
-                gdp: { name: 'GDP Growth', unit: '%' },
-                inflation: { name: 'CPI', unit: '%' },
-                pmi: { name: 'Manufacturing PMI', unit: '' }
-            },
-            markets: ['000001.SS', '399001.SZ']
-        },
-        japan: {
-            name: 'Japan',
-            flag: '🇯🇵',
-            color: '#d62728',
-            indicators: {
-                gdp: { name: 'GDP Growth', unit: '%' },
-                inflation: { name: 'CPI', unit: '%' },
-                unemployment: { name: 'Unemployment', unit: '%' }
-            },
-            markets: ['^N225', '^TOPX']
-        },
-        uk: {
-            name: 'United Kingdom',
-            flag: '🇬🇧',
-            color: '#9467bd',
-            indicators: {
-                gdp: { name: 'GDP Growth', unit: '%' },
-                inflation: { name: 'CPI', unit: '%' },
-                unemployment: { name: 'Unemployment', unit: '%' }
-            },
-            markets: ['^FTSE', '^FTMC']
-        }
-    };
-    
-    // Market indices for quick overview
-    const MAJOR_INDICES = [
-        { symbol: '^GSPC', name: 'S&P 500', flag: '🇺🇸' },
-        { symbol: '^DJI', name: 'Dow Jones', flag: '🇺🇸' },
-        { symbol: '^IXIC', name: 'NASDAQ', flag: '🇺🇸' },
-        { symbol: '^STOXX50E', name: 'Euro Stoxx 50', flag: '🇪🇺' },
-        { symbol: '^FTSE', name: 'FTSE 100', flag: '🇬🇧' },
-        { symbol: '^N225', name: 'Nikkei 225', flag: '🇯🇵' }
-    ];
-    
     // Global data store
     let globalData = {
         lastUpdated: null,
         indicators: {},
         markets: {},
         analysis: {}
+    };
+    
+    // Major market indices
+    const MAJOR_INDICES = [
+        { symbol: '^GSPC', name: 'S&P 500', flag: '🇺🇸' },
+        { symbol: '^DJI', name: 'Dow Jones', flag: '🇺🇸' },
+        { symbol: '^IXIC', name: 'NASDAQ', flag: '🇺🇸' },
+        { symbol: '^FTSE', name: 'FTSE 100', flag: '🇬🇧' },
+        { symbol: '^N225', name: 'Nikkei 225', flag: '🇯🇵' },
+        { symbol: '^GDAXI', name: 'DAX', flag: '🇩🇪' }
+    ];
+    
+    // Global indicators configuration
+    const INDICATORS_CONFIG = {
+        us: {
+            name: 'United States',
+            flag: '🇺🇸',
+            indicators: {
+                gdp: { fredId: 'GDPC1', name: 'GDP Growth', unit: '%' },
+                inflation: { fredId: 'CPIAUCSL', name: 'Inflation', unit: '%' },
+                unemployment: { fredId: 'UNRATE', name: 'Unemployment', unit: '%' },
+                interest: { fredId: 'FEDFUNDS', name: 'Fed Rate', unit: '%' }
+            }
+        },
+        eu: { name: 'European Union', flag: '🇪🇺' },
+        china: { name: 'China', flag: '🇨🇳' },
+        japan: { name: 'Japan', flag: '🇯🇵' },
+        uk: { name: 'United Kingdom', flag: '🇬🇧' }
     };
     
     // Utility functions
@@ -567,31 +526,41 @@
         return `${arrow} ${Math.abs(change).toFixed(2)}${unit}`;
     }
     
-    // Fetch FRED data
-    async function fetchFredData(seriesId, limit = 2) {
-        const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=demo&file_type=json&limit=${limit}&sort_order=desc`;
-        const response = await fetch(proxyUrl(url));
-        
-        if (!response.ok) throw new Error(`FRED API error: ${response.status}`);
-        const data = await response.json();
-        return data.observations;
-    }
-    
     // Fetch Yahoo Finance data
     async function fetchYahooData(symbol) {
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=7d`;
-        const response = await fetch(proxyUrl(url));
-        
-        if (!response.ok) throw new Error(`Yahoo API error: ${response.status}`);
-        const data = await response.json();
-        return data.chart.result[0];
+        try {
+            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=7d`;
+            const response = await fetch(proxyUrl(url));
+            
+            if (!response.ok) throw new Error(`Yahoo API error: ${response.status}`);
+            const data = await response.json();
+            return data.chart.result[0];
+        } catch (error) {
+            console.error(`Error fetching ${symbol}:`, error);
+            return null;
+        }
+    }
+    
+    // Fetch FRED data
+    async function fetchFredData(seriesId, limit = 2) {
+        try {
+            const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=demo&file_type=json&limit=${limit}&sort_order=desc`;
+            const response = await fetch(proxyUrl(url));
+            
+            if (!response.ok) throw new Error(`FRED API error: ${response.status}`);
+            const data = await response.json();
+            return data.observations;
+        } catch (error) {
+            console.error(`Error fetching FRED ${seriesId}:`, error);
+            return null;
+        }
     }
     
     // Load market data
     async function loadMarketData() {
         const promises = MAJOR_INDICES.map(async (index) => {
-            try {
-                const data = await fetchYahooData(index.symbol);
+            const data = await fetchYahooData(index.symbol);
+            if (data && data.indicators && data.indicators.quote[0]) {
                 const quotes = data.indicators.quote[0];
                 const closes = quotes.close.filter(c => c !== null);
                 
@@ -608,8 +577,6 @@
                         data: closes
                     };
                 }
-            } catch (error) {
-                console.error(`Error loading ${index.symbol}:`, error);
             }
         });
         
@@ -618,73 +585,60 @@
     
     // Load US economic indicators
     async function loadUSIndicators() {
-        const indicators = GLOBAL_INDICATORS.us.indicators;
-        const promises = Object.entries(indicators).map(async ([key, config]) => {
-            try {
-                const observations = await fetchFredData(config.fredId, 2);
-                if (observations && observations.length >= 2) {
-                    const current = parseFloat(observations[0].value);
-                    const previous = parseFloat(observations[1].value);
-                    let change = current - previous;
-                    
-                    // Special calculation for inflation (year-over-year)
-                    if (key === 'inflation') {
-                        const yearAgoObs = await fetchFredData(config.fredId, 13);
-                        if (yearAgoObs && yearAgoObs.length >= 13) {
-                            const currentCPI = parseFloat(yearAgoObs[0].value);
-                            const yearAgoCPI = parseFloat(yearAgoObs[12].value);
-                            change = ((currentCPI - yearAgoCPI) / yearAgoCPI) * 100;
-                        }
-                    }
-                    
-                    globalData.indicators[`us_${key}`] = {
-                        country: 'us',
-                        name: config.name,
-                        value: key === 'inflation' ? change : current,
-                        change: change,
-                        unit: config.unit,
-                        date: observations[0].date
-                    };
-                }
-            } catch (error) {
-                console.error(`Error loading US ${key}:`, error);
-            }
-        });
+        const indicators = INDICATORS_CONFIG.us.indicators;
         
-        await Promise.allSettled(promises);
-    }
-    
-    // Generate simulated data for other countries (in real app, would use actual APIs)
-    async function loadGlobalIndicators() {
-        const countries = ['eu', 'china', 'japan', 'uk'];
-        
-        countries.forEach(countryCode => {
-            const country = GLOBAL_INDICATORS[countryCode];
-            Object.entries(country.indicators).forEach(([key, config]) => {
-                // Simulate realistic economic data
-                let baseValue = 2.5; // GDP base
-                let variance = 0.5;
+        for (const [key, config] of Object.entries(indicators)) {
+            const observations = await fetchFredData(config.fredId, 2);
+            if (observations && observations.length >= 2) {
+                const current = parseFloat(observations[0].value);
+                const previous = parseFloat(observations[1].value);
+                let change = current - previous;
+                let displayValue = current;
                 
+                // Special calculation for inflation (year-over-year)
                 if (key === 'inflation') {
-                    baseValue = 3.2;
-                    variance = 1.0;
-                } else if (key === 'unemployment') {
-                    baseValue = 5.8;
-                    variance = 2.0;
-                } else if (key === 'interest') {
-                    baseValue = 2.0;
-                    variance = 1.5;
+                    const yearAgoObs = await fetchFredData(config.fredId, 13);
+                    if (yearAgoObs && yearAgoObs.length >= 13) {
+                        const currentCPI = parseFloat(yearAgoObs[0].value);
+                        const yearAgoCPI = parseFloat(yearAgoObs[12].value);
+                        displayValue = ((currentCPI - yearAgoCPI) / yearAgoCPI) * 100;
+                        change = displayValue;
+                    }
                 }
                 
-                const value = baseValue + (Math.random() - 0.5) * variance * 2;
-                const change = (Math.random() - 0.5) * 1.0;
-                
-                globalData.indicators[`${countryCode}_${key}`] = {
-                    country: countryCode,
+                globalData.indicators[`us_${key}`] = {
+                    country: 'us',
                     name: config.name,
-                    value: value,
+                    value: displayValue,
                     change: change,
                     unit: config.unit,
+                    date: observations[0].date
+                };
+            }
+        }
+    }
+    
+    // Generate simulated data for other countries
+    function loadGlobalIndicators() {
+        const countries = ['eu', 'china', 'japan', 'uk'];
+        const indicatorTypes = [
+            { key: 'gdp', name: 'GDP Growth', base: 2.5, variance: 1.5, unit: '%' },
+            { key: 'inflation', name: 'Inflation', base: 3.2, variance: 2.0, unit: '%' },
+            { key: 'unemployment', name: 'Unemployment', base: 5.8, variance: 3.0, unit: '%' }
+        ];
+        
+        countries.forEach(countryCode => {
+            const country = INDICATORS_CONFIG[countryCode];
+            indicatorTypes.forEach(indicator => {
+                const value = indicator.base + (Math.random() - 0.5) * indicator.variance * 2;
+                const change = (Math.random() - 0.5) * 1.0;
+                
+                globalData.indicators[`${countryCode}_${indicator.key}`] = {
+                    country: countryCode,
+                    name: indicator.name,
+                    value: Math.max(0, value),
+                    change: change,
+                    unit: indicator.unit,
                     date: new Date().toISOString().split('T')[0]
                 };
             });
@@ -693,52 +647,78 @@
     
     // Generate investment analysis
     function generateInvestmentAnalysis() {
-        const usGdp = globalData.indicators.us_gdp?.value || 0;
-        const usInflation = globalData.indicators.us_inflation?.value || 0;
-        const usUnemployment = globalData.indicators.us_unemployment?.value || 0;
-        
-        // Market sentiment analysis
-        const marketPerformance = Object.values(globalData.markets);
-        const avgChange = marketPerformance.reduce((sum, market) => sum + (market.change || 0), 0) / marketPerformance.length;
+        const marketData = Object.values(globalData.markets);
+        const avgChange = marketData.length > 0 ? 
+            marketData.reduce((sum, market) => sum + (market.change || 0), 0) / marketData.length : 0;
         
         // Generate today's advice
         let todayAdvice = '';
         let riskLevel = 'Moderate';
         
         if (avgChange > 1) {
-            todayAdvice = '🟢 Markets are showing strong positive momentum. Consider taking profits on overextended positions while maintaining exposure to quality growth stocks. Watch for potential reversal signals.';
+            todayAdvice = '🟢 Markets are showing strong positive momentum. Consider taking profits on overextended positions while maintaining exposure to quality growth stocks. Watch for potential reversal signals at resistance levels.';
             riskLevel = 'Elevated (Overheating Risk)';
         } else if (avgChange < -1) {
-            todayAdvice = '🔴 Markets are under pressure. This could be a buying opportunity for long-term investors. Focus on defensive sectors and quality dividend stocks. Avoid highly leveraged positions.';
+            todayAdvice = '🔴 Markets are under pressure today. This could present buying opportunities for long-term investors. Focus on defensive sectors like utilities and consumer staples. Avoid highly leveraged positions until volatility subsides.';
             riskLevel = 'High (Market Stress)';
         } else {
-            todayAdvice = '🟡 Markets are consolidating. Maintain balanced portfolio allocation. Good time for rebalancing and dollar-cost averaging into quality positions.';
+            todayAdvice = '🟡 Markets are consolidating in a sideways pattern. This is a good time for portfolio rebalancing and dollar-cost averaging into quality positions. Consider maintaining balanced allocation across regions and sectors.';
             riskLevel = 'Moderate';
         }
         
         // Add economic context
+        const usInflation = globalData.indicators.us_inflation?.value || 0;
+        const usUnemployment = globalData.indicators.us_unemployment?.value || 0;
+        
         if (usInflation > 4) {
-            todayAdvice += ' High inflation environment favors real assets like REITs and commodities.';
+            todayAdvice += ' High inflation environment favors real assets like REITs, commodities, and TIPS bonds.';
         }
         if (usUnemployment > 6) {
-            todayAdvice += ' Rising unemployment suggests economic weakness - consider defensive positioning.';
+            todayAdvice += ' Rising unemployment suggests economic weakness - consider defensive positioning and quality dividend stocks.';
         }
         
         // Sector recommendations
         const sectors = [
-            { name: 'Technology', rating: avgChange > 0 ? 'Bullish' : 'Neutral', reason: 'Growth momentum' },
-            { name: 'Healthcare', rating: 'Bullish', reason: 'Defensive characteristics' },
-            { name: 'Finance', rating: usInflation > 3 ? 'Bullish' : 'Neutral', reason: 'Interest rate environment' },
-            { name: 'Energy', rating: 'Neutral', reason: 'Volatile commodity prices' },
-            { name: 'Consumer Staples', rating: avgChange < -1 ? 'Bullish' : 'Neutral', reason: 'Recession hedge' },
-            { name: 'Real Estate', rating: usInflation > 4 ? 'Bullish' : 'Bearish', reason: 'Inflation hedge vs. rates' }
+            { 
+                name: 'Technology', 
+                rating: avgChange > 0 ? 'Bullish' : avgChange > -2 ? 'Neutral' : 'Bearish',
+                reason: avgChange > 0 ? 'Growth momentum continues' : 'Interest rate sensitivity'
+            },
+            { 
+                name: 'Healthcare', 
+                rating: 'Bullish', 
+                reason: 'Defensive characteristics and aging demographics'
+            },
+            { 
+                name: 'Financials', 
+                rating: usInflation > 3 ? 'Bullish' : 'Neutral',
+                reason: usInflation > 3 ? 'Benefits from rising rates' : 'Net interest margin pressure'
+            },
+            { 
+                name: 'Energy', 
+                rating: 'Neutral', 
+                reason: 'Volatile commodity prices and transition risks'
+            },
+            { 
+                name: 'Consumer Staples', 
+                rating: avgChange < -1 ? 'Bullish' : 'Neutral',
+                reason: avgChange < -1 ? 'Recession hedge qualities' : 'Slow growth sector'
+            },
+            { 
+                name: 'Real Estate', 
+                rating: usInflation > 4 ? 'Bullish' : 'Bearish',
+                reason: usInflation > 4 ? 'Inflation hedge' : 'Interest rate sensitivity'
+            }
         ];
         
         globalData.analysis = {
             todayAdvice,
             riskLevel,
             sectors,
-            marketSentiment: avgChange > 1 ? 'Very Positive' : avgChange > 0 ? 'Positive' : avgChange > -1 ? 'Neutral' : 'Negative'
+            marketSentiment: avgChange > 2 ? 'Very Bullish' : 
+                            avgChange > 0.5 ? 'Bullish' : 
+                            avgChange > -0.5 ? 'Neutral' : 
+                            avgChange > -2 ? 'Bearish' : 'Very Bearish'
         };
     }
     
@@ -747,14 +727,18 @@
         const summaryDiv = document.getElementById('marketSummary');
         const majorMarkets = Object.values(globalData.markets).slice(0, 4);
         
+        if (majorMarkets.length === 0) {
+            summaryDiv.innerHTML = '<div class="summary-item">Loading market data...</div>';
+            return;
+        }
+        
         summaryDiv.innerHTML = majorMarkets.map(market => `
             <div class="summary-item">
                 <div class="summary-value ${getChangeClass(market.change)}">
                     ${formatValue(market.value, '')}
                 </div>
                 <div class="summary-label">
-                    ${market.flag} ${market.name}
-                    <br>
+                    ${market.flag} ${market.name}<br>
                     <span class="${getChangeClass(market.change)}">${getChangeText(market.change)}</span>
                 </div>
             </div>
@@ -765,20 +749,24 @@
         const grid = document.getElementById('insightsGrid');
         grid.innerHTML = '';
         
+        if (Object.keys(globalData.indicators).length === 0) {
+            grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            return;
+        }
+        
         Object.entries(globalData.indicators).forEach(([key, data]) => {
-            const country = GLOBAL_INDICATORS[data.country];
+            const country = INDICATORS_CONFIG[data.country];
             if (!country) return;
             
             const card = document.createElement('div');
             card.className = 'insight-card';
-            card.style.setProperty('--card-color', country.color);
             
             const timeAgo = new Date(data.date) < new Date(Date.now() - 7*24*60*60*1000) ? 'Last week' : 'Recent';
             
             card.innerHTML = `
                 <div class="insight-header">
                     <div class="insight-title">
-                        <span class="country-flag">${country.flag}</span>
+                        <span>${country.flag}</span>
                         ${data.name}
                     </div>
                     <div class="insight-time">${timeAgo}</div>
@@ -798,8 +786,16 @@
     
     function getIndicatorAnalysis(key, data) {
         const analyses = {
-            'us_gdp': 'US economic growth drives global markets. Strong GDP supports equity markets and USD strength.',
-            'us_inflation': data.value > 4 ? 'High inflation pressures Fed policy and real returns. Consider inflation-protected securities.' : 'Moderate inflation supports continued economic expansion.',
-            'us_unemployment': data.value > 6 ? 'Rising unemployment signals economic weakness. Defensive positioning recommended.' : 'Healthy job market supports consumer spending and market confidence.',
-            'us_
+            'us_gdp': 'US economic growth drives global markets. Strong GDP supports equity valuations and USD strength.',
+            'us_inflation': data.value > 4 ? 'Elevated inflation pressures Fed policy and real returns. Consider TIPS and real assets.' : 'Moderate inflation supports continued economic expansion and risk assets.',
+            'us_unemployment': data.value > 6 ? 'Rising unemployment signals economic weakness. Defensive positioning recommended.' : 'Healthy job market supports consumer spending and corporate earnings.',
+            'us_interest': data.value > 4 ? 'High rates pressure growth stocks and real estate. Favor financials and value plays.' : 'Low rates support growth and risk assets.',
+            'eu_gdp': 'European growth affects global trade flows. Strong EU performance supports European equities and EUR.',
+            'eu_inflation': 'ECB monetary policy responds to inflation trends. Rate changes impact European bond and equity markets.',
+            'eu_unemployment': 'EU labor market health impacts consumer demand and political stability across the region.',
+            'china_gdp': 'Chinese growth drives global commodities and emerging markets. Supply chain impacts are significant.',
+            'china_inflation': 'Chinese price pressures affect global manufacturing costs and commodity demand patterns.',
+            'japan_gdp': 'Japanese economic performance impacts Asian markets and global technology supply chains.',
+            'japan_inflation': 'BOJ policy responses to inflation affect JPY strength and carry trade dynamics.',
+            '
 ```
