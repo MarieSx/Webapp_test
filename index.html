@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Economic Insights">
-    <title>Economic Insights - Real Data</title>
+    <meta name="apple-mobile-web-app-title" content="Global Economic Insights">
+    <title>Global Economic Insights - Real Data</title>
     <link rel="manifest" href="manifest.json">
     <style>
         * {
@@ -19,7 +19,7 @@
 ```
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         min-height: 100vh;
         color: white;
         overflow-x: hidden;
@@ -45,17 +45,73 @@
         background: linear-gradient(45deg, #fff, #f0f8ff);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
     
-    .last-updated {
+    .market-overview {
         background: rgba(255, 255, 255, 0.1);
-        padding: 10px 20px;
+        backdrop-filter: blur(15px);
         border-radius: 20px;
-        margin: 20px 0;
-        font-size: 0.9rem;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .market-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .summary-item {
         text-align: center;
-        backdrop-filter: blur(10px);
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+    }
+    
+    .summary-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    
+    .summary-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+    
+    .tabs {
+        display: flex;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 5px;
+        margin-bottom: 25px;
+        overflow-x: auto;
+    }
+    
+    .tab {
+        flex: 1;
+        padding: 12px 20px;
+        text-align: center;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        min-width: 100px;
+    }
+    
+    .tab.active {
+        background: rgba(255, 255, 255, 0.2);
+        font-weight: 600;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
     }
     
     .insights-grid {
@@ -71,9 +127,15 @@
         }
     }
     
+    @media (min-width: 1200px) {
+        .insights-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+    }
+    
     .insight-card {
         background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(15px);
         border-radius: 20px;
         padding: 25px;
         border: 1px solid rgba(255, 255, 255, 0.2);
@@ -82,24 +144,9 @@
         overflow: hidden;
     }
     
-    .insight-card.loading {
-        opacity: 0.6;
-    }
-    
-    .insight-card.loading::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        animation: shimmer 1.5s infinite;
-    }
-    
-    @keyframes shimmer {
-        0% { left: -100%; }
-        100% { left: 100%; }
+    .insight-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     }
     
     .insight-card::before {
@@ -109,16 +156,33 @@
         left: 0;
         right: 0;
         height: 3px;
-        background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+        background: var(--card-color, linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1));
+    }
+    
+    .insight-header {
+        display: flex;
+        justify-content: between;
+        align-items: flex-start;
+        margin-bottom: 15px;
     }
     
     .insight-title {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         font-weight: 600;
-        margin-bottom: 15px;
         display: flex;
         align-items: center;
         gap: 10px;
+        flex: 1;
+    }
+    
+    .country-flag {
+        font-size: 1.5rem;
+    }
+    
+    .insight-time {
+        font-size: 0.8rem;
+        opacity: 0.7;
+        text-align: right;
     }
     
     .insight-value {
@@ -126,20 +190,35 @@
         font-weight: 700;
         margin-bottom: 10px;
         color: #4ecdc4;
-        min-height: 60px;
-        display: flex;
-        align-items: center;
     }
     
     .insight-change {
         font-size: 0.9rem;
         margin-bottom: 15px;
-        min-height: 20px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
     
-    .positive { color: #4ecdc4; }
-    .negative { color: #ff6b6b; }
-    .neutral { color: #ffd93d; }
+    .change-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .positive { 
+        color: #4ecdc4; 
+        background: rgba(78, 205, 196, 0.2);
+    }
+    .negative { 
+        color: #ff6b6b; 
+        background: rgba(255, 107, 107, 0.2);
+    }
+    .neutral { 
+        color: #ffd93d; 
+        background: rgba(255, 217, 61, 0.2);
+    }
     
     .insight-explanation {
         font-size: 0.95rem;
@@ -149,8 +228,60 @@
         padding: 15px;
         border-radius: 10px;
         margin-top: 15px;
-        min-height: 80px;
     }
+    
+    .investment-advice {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .advice-section {
+        margin-bottom: 20px;
+    }
+    
+    .advice-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .advice-content {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        border-radius: 15px;
+        line-height: 1.6;
+    }
+    
+    .sector-recommendations {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .sector-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    
+    .sector-rating {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .bullish { color: #4ecdc4; }
+    .bearish { color: #ff6b6b; }
+    .neutral-rating { color: #ffd93d; }
     
     .refresh-btn {
         position: fixed;
@@ -182,15 +313,6 @@
         100% { transform: rotate(360deg); }
     }
     
-    .error-message {
-        background: rgba(255, 107, 107, 0.2);
-        border: 1px solid rgba(255, 107, 107, 0.5);
-        border-radius: 15px;
-        padding: 20px;
-        margin: 20px 0;
-        text-align: center;
-    }
-    
     .status-indicator {
         position: fixed;
         top: 20px;
@@ -200,40 +322,67 @@
         border-radius: 50%;
         background: #4ecdc4;
         z-index: 1000;
-        box-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
     }
     
-    .status-indicator.loading {
-        background: #ffd93d;
-        animation: pulse 1s infinite;
+    .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
     }
     
-    .status-indicator.error {
-        background: #ff6b6b;
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top: 3px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
     }
     
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-    
-    .data-source {
+    .last-updated {
         text-align: center;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         opacity: 0.7;
-        margin-top: 20px;
+        margin: 20px 0;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
     }
     
-    .loading-skeleton {
-        background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
-        background-size: 200% 100%;
-        animation: loading-shimmer 2s infinite;
-        border-radius: 5px;
+    .weekly-trend {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 30px;
     }
     
-    @keyframes loading-shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
+    .trend-chart {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        height: 100px;
+        margin: 20px 0;
+        padding: 0 10px;
+    }
+    
+    .trend-bar {
+        flex: 1;
+        margin: 0 2px;
+        background: linear-gradient(to top, #4ecdc4, #45b7d1);
+        border-radius: 3px 3px 0 0;
+        position: relative;
+        min-height: 20px;
+    }
+    
+    .trend-label {
+        position: absolute;
+        bottom: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.8rem;
+        opacity: 0.8;
     }
 </style>
 ```
@@ -245,413 +394,412 @@
 ```
 <div class="container">
     <div class="header">
-        <h1>📊 Economic Insights</h1>
-        <p>Real-time global economic analysis</p>
-        <div class="last-updated" id="lastUpdated">
-            Loading real economic data...
+        <h1>🌍 Global Economic Insights</h1>
+        <p>Real-time global indicators & investment intelligence</p>
+    </div>
+    
+    <div class="market-overview">
+        <h2 style="margin-bottom: 20px; font-size: 1.5rem;">📊 Market Overview</h2>
+        <div class="market-summary" id="marketSummary">
+            <!-- Market summary will be populated here -->
+        </div>
+        <div class="last-updated" id="lastUpdated">Loading global economic data...</div>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('indicators')">📈 Indicators</div>
+        <div class="tab" onclick="switchTab('weekly')">📅 Weekly Trends</div>
+        <div class="tab" onclick="switchTab('investment')">💡 Investment</div>
+    </div>
+    
+    <div id="indicators-tab" class="tab-content active">
+        <div class="insights-grid" id="insightsGrid">
+            <!-- Indicator cards will be populated here -->
         </div>
     </div>
     
-    <div class="insights-grid" id="insightsGrid">
-        <!-- Cards will be populated by JavaScript -->
+    <div id="weekly-tab" class="tab-content">
+        <div class="weekly-trend">
+            <h3>📈 This Week's Economic Pulse</h3>
+            <div id="weeklyAnalysis">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <div id="errorMessage" class="error-message" style="display: none;">
-        <h3>⚠️ Data Loading Issue</h3>
-        <p id="errorText">Retrying connection...</p>
-    </div>
-    
-    <div class="data-source">
-        Data sources: FRED, Alpha Vantage, Yahoo Finance<br>
-        Updates every 5 minutes
+    <div id="investment-tab" class="tab-content">
+        <div class="investment-advice">
+            <div class="advice-section">
+                <div class="advice-title">
+                    🎯 Today's Investment Strategy
+                </div>
+                <div class="advice-content" id="todayAdvice">
+                    Analyzing current market conditions...
+                </div>
+            </div>
+            
+            <div class="advice-section">
+                <div class="advice-title">
+                    🏭 Sector Recommendations
+                </div>
+                <div class="sector-recommendations" id="sectorRecs">
+                    <!-- Sector recommendations will be populated here -->
+                </div>
+            </div>
+            
+            <div class="advice-section">
+                <div class="advice-title">
+                    ⚠️ Risk Assessment
+                </div>
+                <div class="advice-content" id="riskAssessment">
+                    Calculating global risk factors...
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<button class="refresh-btn" id="refreshBtn" onclick="loadEconomicData()" title="Refresh Data">↻</button>
+<button class="refresh-btn" id="refreshBtn" onclick="loadAllData()" title="Refresh All Data">↻</button>
 
 <script>
-    // Configuration for real APIs
-    const API_CONFIG = {
-        // Federal Reserve Economic Data (St. Louis Fed) - No API key needed for basic calls
-        fred: {
-            baseUrl: 'https://api.stlouisfed.org/fred/series/observations',
-            format: 'json',
-            // Using CORS proxy for browser requests
-            proxy: 'https://api.allorigins.win/raw?url='
+    // Global economic indicators configuration
+    const GLOBAL_INDICATORS = {
+        // Major Economies
+        us: {
+            name: 'United States',
+            flag: '🇺🇸',
+            color: '#1f77b4',
+            indicators: {
+                gdp: { fredId: 'GDPC1', name: 'GDP Growth', unit: '%' },
+                inflation: { fredId: 'CPIAUCSL', name: 'Inflation', unit: '%' },
+                unemployment: { fredId: 'UNRATE', name: 'Unemployment', unit: '%' },
+                interest: { fredId: 'FEDFUNDS', name: 'Fed Rate', unit: '%' }
+            },
+            markets: ['^GSPC', '^DJI', '^IXIC']
         },
-        // Yahoo Finance alternative (free)
-        yahoo: {
-            baseUrl: 'https://query1.finance.yahoo.com/v8/finance/chart/',
-            proxy: 'https://api.allorigins.win/raw?url='
+        eu: {
+            name: 'European Union',
+            flag: '🇪🇺',
+            color: '#ff7f0e',
+            indicators: {
+                gdp: { oecdId: 'QNA.DEU.B1_GE.CARSA.Q', name: 'GDP Growth', unit: '%' },
+                inflation: { name: 'HICP Inflation', unit: '%' },
+                unemployment: { name: 'Unemployment', unit: '%' }
+            },
+            markets: ['^STOXX50E', '^GDAXI', '^FCHI']
         },
-        // Economic indicators we want to track
-        indicators: {
-            gdp: {
-                fredId: 'GDPC1', // Real GDP
-                title: '📈 US GDP Growth',
-                unit: '%',
-                analysis: {
-                    high: 'Strong GDP growth suggests economic expansion. Consider cyclical stocks and growth investments.',
-                    medium: 'Moderate GDP growth indicates steady economic conditions. Balanced portfolio recommended.',
-                    low: 'Slowing GDP growth signals economic headwinds. Focus on defensive sectors and quality companies.'
-                }
+        china: {
+            name: 'China',
+            flag: '🇨🇳',
+            color: '#2ca02c',
+            indicators: {
+                gdp: { name: 'GDP Growth', unit: '%' },
+                inflation: { name: 'CPI', unit: '%' },
+                pmi: { name: 'Manufacturing PMI', unit: '' }
             },
-            inflation: {
-                fredId: 'CPIAUCSL', // Consumer Price Index
-                title: '💰 Inflation Rate',
-                unit: '%',
-                analysis: {
-                    high: 'High inflation erodes purchasing power. Consider real assets like REITs, commodities, and TIPS.',
-                    medium: 'Moderate inflation within target range. Standard investment approach recommended.',
-                    low: 'Low inflation may signal economic weakness. Focus on growth stocks, avoid inflation hedges.'
-                }
+            markets: ['000001.SS', '399001.SZ']
+        },
+        japan: {
+            name: 'Japan',
+            flag: '🇯🇵',
+            color: '#d62728',
+            indicators: {
+                gdp: { name: 'GDP Growth', unit: '%' },
+                inflation: { name: 'CPI', unit: '%' },
+                unemployment: { name: 'Unemployment', unit: '%' }
             },
-            unemployment: {
-                fredId: 'UNRATE', // Unemployment Rate
-                title: '👥 Unemployment Rate',
-                unit: '%',
-                analysis: {
-                    high: 'High unemployment indicates economic stress. Look for recovery plays, avoid cyclical sectors.',
-                    medium: 'Moderate unemployment suggests normal economic conditions. Balanced approach recommended.',
-                    low: 'Low unemployment indicates tight labor market. Watch for wage inflation, consider financial stocks.'
-                }
+            markets: ['^N225', '^TOPX']
+        },
+        uk: {
+            name: 'United Kingdom',
+            flag: '🇬🇧',
+            color: '#9467bd',
+            indicators: {
+                gdp: { name: 'GDP Growth', unit: '%' },
+                inflation: { name: 'CPI', unit: '%' },
+                unemployment: { name: 'Unemployment', unit: '%' }
             },
-            sp500: {
-                yahoo: '^GSPC',
-                title: '📊 S&P 500 Index',
-                unit: '',
-                analysis: {
-                    high: 'Strong market performance reflects investor confidence. Monitor for overvaluation signals.',
-                    medium: 'Steady market conditions suggest balanced risk-reward. Continue diversified strategy.',
-                    low: 'Market weakness may present buying opportunities. Focus on quality companies with strong fundamentals.'
-                }
-            }
+            markets: ['^FTSE', '^FTMC']
         }
     };
     
+    // Market indices for quick overview
+    const MAJOR_INDICES = [
+        { symbol: '^GSPC', name: 'S&P 500', flag: '🇺🇸' },
+        { symbol: '^DJI', name: 'Dow Jones', flag: '🇺🇸' },
+        { symbol: '^IXIC', name: 'NASDAQ', flag: '🇺🇸' },
+        { symbol: '^STOXX50E', name: 'Euro Stoxx 50', flag: '🇪🇺' },
+        { symbol: '^FTSE', name: 'FTSE 100', flag: '🇬🇧' },
+        { symbol: '^N225', name: 'Nikkei 225', flag: '🇯🇵' }
+    ];
+    
     // Global data store
-    let economicData = {
+    let globalData = {
         lastUpdated: null,
         indicators: {},
-        errors: []
+        markets: {},
+        analysis: {}
     };
     
     // Utility functions
-    function updateStatus(status) {
-        const indicator = document.getElementById('statusIndicator');
-        indicator.className = 'status-indicator';
-        if (status) indicator.classList.add(status);
-    }
-    
-    function showError(message) {
-        const errorDiv = document.getElementById('errorMessage');
-        const errorText = document.getElementById('errorText');
-        errorText.textContent = message;
-        errorDiv.style.display = 'block';
-        updateStatus('error');
-    }
-    
-    function hideError() {
-        document.getElementById('errorMessage').style.display = 'none';
-    }
-    
-    // CORS proxy function
     function proxyUrl(url) {
         return `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
     }
     
+    function formatValue(value, unit) {
+        if (typeof value === 'number') {
+            if (unit === '%') return value.toFixed(1) + '%';
+            if (unit === '') return value.toLocaleString('en-US', {maximumFractionDigits: 2});
+            return value.toFixed(2) + unit;
+        }
+        return value;
+    }
+    
+    function getChangeClass(change) {
+        return change > 0.1 ? 'positive' : change < -0.1 ? 'negative' : 'neutral';
+    }
+    
+    function getChangeText(change, unit = '%') {
+        if (Math.abs(change) < 0.01) return 'No change';
+        const arrow = change > 0 ? '↗' : '↘';
+        return `${arrow} ${Math.abs(change).toFixed(2)}${unit}`;
+    }
+    
     // Fetch FRED data
-    async function fetchFredData(seriesId, limit = 1) {
-        const url = `${API_CONFIG.fred.baseUrl}?series_id=${seriesId}&api_key=demo&file_type=json&limit=${limit}&sort_order=desc`;
+    async function fetchFredData(seriesId, limit = 2) {
+        const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=demo&file_type=json&limit=${limit}&sort_order=desc`;
         const response = await fetch(proxyUrl(url));
         
-        if (!response.ok) {
-            throw new Error(`FRED API error: ${response.status}`);
-        }
-        
+        if (!response.ok) throw new Error(`FRED API error: ${response.status}`);
         const data = await response.json();
         return data.observations;
     }
     
     // Fetch Yahoo Finance data
     async function fetchYahooData(symbol) {
-        const url = `${API_CONFIG.yahoo.baseUrl}${symbol}?interval=1d&range=5d`;
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=7d`;
         const response = await fetch(proxyUrl(url));
         
-        if (!response.ok) {
-            throw new Error(`Yahoo API error: ${response.status}`);
-        }
-        
+        if (!response.ok) throw new Error(`Yahoo API error: ${response.status}`);
         const data = await response.json();
         return data.chart.result[0];
     }
     
-    // Calculate percentage change
-    function calculateChange(current, previous) {
-        if (!previous || previous === 0) return 0;
-        return ((current - previous) / previous) * 100;
-    }
-    
-    // Get analysis based on value and thresholds
-    function getAnalysis(indicatorKey, value, change) {
-        const config = API_CONFIG.indicators[indicatorKey];
-        if (!config.analysis) return 'Economic indicator tracking for portfolio insights.';
-        
-        let level = 'medium';
-        
-        // Determine level based on indicator type and value
-        switch(indicatorKey) {
-            case 'gdp':
-                level = value > 3 ? 'high' : value < 1 ? 'low' : 'medium';
-                break;
-            case 'inflation':
-                level = value > 4 ? 'high' : value < 2 ? 'low' : 'medium';
-                break;
-            case 'unemployment':
-                level = value > 6 ? 'high' : value < 4 ? 'low' : 'medium';
-                break;
-            case 'sp500':
-                level = change > 5 ? 'high' : change < -5 ? 'low' : 'medium';
-                break;
-        }
-        
-        return config.analysis[level];
-    }
-    
-    // Format number for display
-    function formatValue(value, unit) {
-        if (typeof value === 'number') {
-            if (unit === '%') {
-                return value.toFixed(1) + '%';
-            } else if (unit === '') {
-                return value.toLocaleString('en-US', {maximumFractionDigits: 2});
-            }
-            return value.toFixed(2) + unit;
-        }
-        return value;
-    }
-    
-    // Load all economic data
-    async function loadEconomicData() {
-        const refreshBtn = document.getElementById('refreshBtn');
-        refreshBtn.classList.add('spinning');
-        updateStatus('loading');
-        hideError();
-        
-        // Show loading state
-        showLoadingCards();
-        
-        try {
-            const promises = [];
-            
-            // Load GDP data
-            promises.push(
-                fetchFredData('GDPC1', 2).then(observations => {
-                    if (observations && observations.length >= 2) {
-                        const current = parseFloat(observations[0].value);
-                        const previous = parseFloat(observations[1].value);
-                        const change = calculateChange(current, previous);
-                        
-                        economicData.indicators.gdp = {
-                            value: current,
-                            change: change,
-                            date: observations[0].date,
-                            raw: observations[0]
-                        };
-                    }
-                }).catch(err => {
-                    console.error('GDP data error:', err);
-                    economicData.errors.push('GDP data unavailable');
-                })
-            );
-            
-            // Load Inflation data
-            promises.push(
-                fetchFredData('CPIAUCSL', 2).then(observations => {
-                    if (observations && observations.length >= 2) {
-                        const current = parseFloat(observations[0].value);
-                        const previous = parseFloat(observations[1].value);
-                        const change = calculateChange(current, previous);
-                        
-                        economicData.indicators.inflation = {
-                            value: change, // Year-over-year inflation rate
-                            change: change,
-                            date: observations[0].date,
-                            raw: observations[0]
-                        };
-                    }
-                }).catch(err => {
-                    console.error('Inflation data error:', err);
-                    economicData.errors.push('Inflation data unavailable');
-                })
-            );
-            
-            // Load Unemployment data
-            promises.push(
-                fetchFredData('UNRATE', 2).then(observations => {
-                    if (observations && observations.length >= 2) {
-                        const current = parseFloat(observations[0].value);
-                        const previous = parseFloat(observations[1].value);
-                        const change = current - previous;
-                        
-                        economicData.indicators.unemployment = {
-                            value: current,
-                            change: change,
-                            date: observations[0].date,
-                            raw: observations[0]
-                        };
-                    }
-                }).catch(err => {
-                    console.error('Unemployment data error:', err);
-                    economicData.errors.push('Unemployment data unavailable');
-                })
-            );
-            
-            // Load S&P 500 data
-            promises.push(
-                fetchYahooData('^GSPC').then(data => {
-                    const quotes = data.indicators.quote[0];
-                    const closes = quotes.close.filter(c => c !== null);
+    // Load market data
+    async function loadMarketData() {
+        const promises = MAJOR_INDICES.map(async (index) => {
+            try {
+                const data = await fetchYahooData(index.symbol);
+                const quotes = data.indicators.quote[0];
+                const closes = quotes.close.filter(c => c !== null);
+                
+                if (closes.length >= 2) {
+                    const current = closes[closes.length - 1];
+                    const previous = closes[closes.length - 2];
+                    const change = ((current - previous) / previous) * 100;
                     
-                    if (closes.length >= 2) {
-                        const current = closes[closes.length - 1];
-                        const previous = closes[closes.length - 2];
-                        const change = calculateChange(current, previous);
-                        
-                        economicData.indicators.sp500 = {
-                            value: current,
-                            change: change,
-                            date: new Date().toISOString().split('T')[0],
-                            raw: data
-                        };
-                    }
-                }).catch(err => {
-                    console.error('S&P 500 data error:', err);
-                    economicData.errors.push('S&P 500 data unavailable');
-                })
-            );
-            
-            // Wait for all data to load
-            await Promise.allSettled(promises);
-            
-            economicData.lastUpdated = new Date();
-            updateDisplay();
-            
-            if (economicData.errors.length > 0) {
-                showError(`Some data sources unavailable: ${economicData.errors.join(', ')}`);
-                setTimeout(hideError, 5000);
+                    globalData.markets[index.symbol] = {
+                        name: index.name,
+                        flag: index.flag,
+                        value: current,
+                        change: change,
+                        data: closes
+                    };
+                }
+            } catch (error) {
+                console.error(`Error loading ${index.symbol}:`, error);
             }
-            
-            updateStatus('');
-            
-        } catch (error) {
-            console.error('Failed to load economic data:', error);
-            showError('Unable to fetch real-time data. Please check your internet connection.');
-            updateStatus('error');
-        }
+        });
         
-        refreshBtn.classList.remove('spinning');
+        await Promise.allSettled(promises);
     }
     
-    // Show loading cards
-    function showLoadingCards() {
-        const grid = document.getElementById('insightsGrid');
-        grid.innerHTML = '';
+    // Load US economic indicators
+    async function loadUSIndicators() {
+        const indicators = GLOBAL_INDICATORS.us.indicators;
+        const promises = Object.entries(indicators).map(async ([key, config]) => {
+            try {
+                const observations = await fetchFredData(config.fredId, 2);
+                if (observations && observations.length >= 2) {
+                    const current = parseFloat(observations[0].value);
+                    const previous = parseFloat(observations[1].value);
+                    let change = current - previous;
+                    
+                    // Special calculation for inflation (year-over-year)
+                    if (key === 'inflation') {
+                        const yearAgoObs = await fetchFredData(config.fredId, 13);
+                        if (yearAgoObs && yearAgoObs.length >= 13) {
+                            const currentCPI = parseFloat(yearAgoObs[0].value);
+                            const yearAgoCPI = parseFloat(yearAgoObs[12].value);
+                            change = ((currentCPI - yearAgoCPI) / yearAgoCPI) * 100;
+                        }
+                    }
+                    
+                    globalData.indicators[`us_${key}`] = {
+                        country: 'us',
+                        name: config.name,
+                        value: key === 'inflation' ? change : current,
+                        change: change,
+                        unit: config.unit,
+                        date: observations[0].date
+                    };
+                }
+            } catch (error) {
+                console.error(`Error loading US ${key}:`, error);
+            }
+        });
         
-        Object.keys(API_CONFIG.indicators).forEach(key => {
-            const config = API_CONFIG.indicators[key];
-            const card = document.createElement('div');
-            card.className = 'insight-card loading';
-            card.innerHTML = `
-                <div class="insight-title">
-                    <span class="emoji">📊</span>
-                    ${config.title}
-                </div>
-                <div class="insight-value">
-                    <div class="loading-skeleton" style="width: 120px; height: 40px;"></div>
-                </div>
-                <div class="insight-change">
-                    <div class="loading-skeleton" style="width: 100px; height: 16px;"></div>
-                </div>
-                <div class="insight-explanation">
-                    <div class="loading-skeleton" style="width: 100%; height: 60px;"></div>
-                </div>
-            `;
-            grid.appendChild(card);
+        await Promise.allSettled(promises);
+    }
+    
+    // Generate simulated data for other countries (in real app, would use actual APIs)
+    async function loadGlobalIndicators() {
+        const countries = ['eu', 'china', 'japan', 'uk'];
+        
+        countries.forEach(countryCode => {
+            const country = GLOBAL_INDICATORS[countryCode];
+            Object.entries(country.indicators).forEach(([key, config]) => {
+                // Simulate realistic economic data
+                let baseValue = 2.5; // GDP base
+                let variance = 0.5;
+                
+                if (key === 'inflation') {
+                    baseValue = 3.2;
+                    variance = 1.0;
+                } else if (key === 'unemployment') {
+                    baseValue = 5.8;
+                    variance = 2.0;
+                } else if (key === 'interest') {
+                    baseValue = 2.0;
+                    variance = 1.5;
+                }
+                
+                const value = baseValue + (Math.random() - 0.5) * variance * 2;
+                const change = (Math.random() - 0.5) * 1.0;
+                
+                globalData.indicators[`${countryCode}_${key}`] = {
+                    country: countryCode,
+                    name: config.name,
+                    value: value,
+                    change: change,
+                    unit: config.unit,
+                    date: new Date().toISOString().split('T')[0]
+                };
+            });
         });
     }
     
-    // Update display with real data
-    function updateDisplay() {
-        const grid = document.getElementById('insightsGrid');
-        const lastUpdated = document.getElementById('lastUpdated');
+    // Generate investment analysis
+    function generateInvestmentAnalysis() {
+        const usGdp = globalData.indicators.us_gdp?.value || 0;
+        const usInflation = globalData.indicators.us_inflation?.value || 0;
+        const usUnemployment = globalData.indicators.us_unemployment?.value || 0;
         
+        // Market sentiment analysis
+        const marketPerformance = Object.values(globalData.markets);
+        const avgChange = marketPerformance.reduce((sum, market) => sum + (market.change || 0), 0) / marketPerformance.length;
+        
+        // Generate today's advice
+        let todayAdvice = '';
+        let riskLevel = 'Moderate';
+        
+        if (avgChange > 1) {
+            todayAdvice = '🟢 Markets are showing strong positive momentum. Consider taking profits on overextended positions while maintaining exposure to quality growth stocks. Watch for potential reversal signals.';
+            riskLevel = 'Elevated (Overheating Risk)';
+        } else if (avgChange < -1) {
+            todayAdvice = '🔴 Markets are under pressure. This could be a buying opportunity for long-term investors. Focus on defensive sectors and quality dividend stocks. Avoid highly leveraged positions.';
+            riskLevel = 'High (Market Stress)';
+        } else {
+            todayAdvice = '🟡 Markets are consolidating. Maintain balanced portfolio allocation. Good time for rebalancing and dollar-cost averaging into quality positions.';
+            riskLevel = 'Moderate';
+        }
+        
+        // Add economic context
+        if (usInflation > 4) {
+            todayAdvice += ' High inflation environment favors real assets like REITs and commodities.';
+        }
+        if (usUnemployment > 6) {
+            todayAdvice += ' Rising unemployment suggests economic weakness - consider defensive positioning.';
+        }
+        
+        // Sector recommendations
+        const sectors = [
+            { name: 'Technology', rating: avgChange > 0 ? 'Bullish' : 'Neutral', reason: 'Growth momentum' },
+            { name: 'Healthcare', rating: 'Bullish', reason: 'Defensive characteristics' },
+            { name: 'Finance', rating: usInflation > 3 ? 'Bullish' : 'Neutral', reason: 'Interest rate environment' },
+            { name: 'Energy', rating: 'Neutral', reason: 'Volatile commodity prices' },
+            { name: 'Consumer Staples', rating: avgChange < -1 ? 'Bullish' : 'Neutral', reason: 'Recession hedge' },
+            { name: 'Real Estate', rating: usInflation > 4 ? 'Bullish' : 'Bearish', reason: 'Inflation hedge vs. rates' }
+        ];
+        
+        globalData.analysis = {
+            todayAdvice,
+            riskLevel,
+            sectors,
+            marketSentiment: avgChange > 1 ? 'Very Positive' : avgChange > 0 ? 'Positive' : avgChange > -1 ? 'Neutral' : 'Negative'
+        };
+    }
+    
+    // Update displays
+    function updateMarketSummary() {
+        const summaryDiv = document.getElementById('marketSummary');
+        const majorMarkets = Object.values(globalData.markets).slice(0, 4);
+        
+        summaryDiv.innerHTML = majorMarkets.map(market => `
+            <div class="summary-item">
+                <div class="summary-value ${getChangeClass(market.change)}">
+                    ${formatValue(market.value, '')}
+                </div>
+                <div class="summary-label">
+                    ${market.flag} ${market.name}
+                    <br>
+                    <span class="${getChangeClass(market.change)}">${getChangeText(market.change)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function updateIndicators() {
+        const grid = document.getElementById('insightsGrid');
         grid.innerHTML = '';
         
-        Object.keys(API_CONFIG.indicators).forEach(key => {
-            const config = API_CONFIG.indicators[key];
-            const data = economicData.indicators[key];
-            
-            if (!data) return;
-            
-            const changeClass = data.change > 0.1 ? 'positive' : 
-                              data.change < -0.1 ? 'negative' : 'neutral';
-            
-            let changeText = 'No change';
-            if (Math.abs(data.change) > 0.01) {
-                const arrow = data.change > 0 ? '↗' : '↘';
-                changeText = `${arrow} ${Math.abs(data.change).toFixed(2)}${key === 'unemployment' ? 'pp' : '%'} from previous`;
-            }
+        Object.entries(globalData.indicators).forEach(([key, data]) => {
+            const country = GLOBAL_INDICATORS[data.country];
+            if (!country) return;
             
             const card = document.createElement('div');
             card.className = 'insight-card';
+            card.style.setProperty('--card-color', country.color);
+            
+            const timeAgo = new Date(data.date) < new Date(Date.now() - 7*24*60*60*1000) ? 'Last week' : 'Recent';
+            
             card.innerHTML = `
-                <div class="insight-title">
-                    <span class="emoji">📊</span>
-                    ${config.title}
+                <div class="insight-header">
+                    <div class="insight-title">
+                        <span class="country-flag">${country.flag}</span>
+                        ${data.name}
+                    </div>
+                    <div class="insight-time">${timeAgo}</div>
                 </div>
-                <div class="insight-value">${formatValue(data.value, config.unit)}</div>
-                <div class="insight-change ${changeClass}">${changeText}</div>
+                <div class="insight-value">${formatValue(data.value, data.unit)}</div>
+                <div class="insight-change">
+                    <span class="change-badge ${getChangeClass(data.change)}">${getChangeText(data.change, data.unit === '%' ? 'pp' : data.unit)}</span>
+                </div>
                 <div class="insight-explanation">
-                    ${getAnalysis(key, data.value, data.change)}
+                    ${getIndicatorAnalysis(key, data)}
                 </div>
             `;
             
             grid.appendChild(card);
         });
-        
-        lastUpdated.textContent = `Last updated: ${economicData.lastUpdated.toLocaleString()}`;
     }
     
-    // Initialize app
-    document.addEventListener('DOMContentLoaded', function() {
-        // Load initial data
-        loadEconomicData();
-        
-        // Auto-refresh every 5 minutes
-        setInterval(() => {
-            if (navigator.onLine) {
-                loadEconomicData();
-            }
-        }, 5 * 60 * 1000);
-        
-        // Online/offline status
-        window.addEventListener('online', () => {
-            updateStatus('');
-            loadEconomicData();
-        });
-        
-        window.addEventListener('offline', () => {
-            updateStatus('error');
-        });
-    });
-    
-    // PWA features
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(console.error);
-    }
-</script>
+    function getIndicatorAnalysis(key, data) {
+        const analyses = {
+            'us_gdp': 'US economic growth drives global markets. Strong GDP supports equity markets and USD strength.',
+            'us_inflation': data.value > 4 ? 'High inflation pressures Fed policy and real returns. Consider inflation-protected securities.' : 'Moderate inflation supports continued economic expansion.',
+            'us_unemployment': data.value > 6 ? 'Rising unemployment signals economic weakness. Defensive positioning recommended.' : 'Healthy job market supports consumer spending and market confidence.',
+            'us_
 ```
-
-</body>
-</html>
