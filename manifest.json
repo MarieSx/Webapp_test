@@ -1,0 +1,35 @@
+{
+“name”: “Economic Insights”,
+“short_name”: “EconInsights”,
+“description”: “Real-time global economic analysis and investment insights”,
+“start_url”: “/”,
+“display”: “standalone”,
+“background_color”: “#667eea”,
+“theme_color”: “#667eea”,
+“orientation”: “portrait”,
+“scope”: “/”,
+“lang”: “en”,
+“categories”: [“finance”, “productivity”, “business”],
+“icons”: [
+{
+“src”: “https://via.placeholder.com/192x192/667eea/ffffff?text=📊”,
+“sizes”: “192x192”,
+“type”: “image/png”,
+“purpose”: “any maskable”
+},
+{
+“src”: “https://via.placeholder.com/512x512/667eea/ffffff?text=📊”,
+“sizes”: “512x512”,
+“type”: “image/png”,
+“purpose”: “any maskable”
+}
+],
+“screenshots”: [
+{
+“src”: “https://via.placeholder.com/390x844/667eea/ffffff?text=Economic+Insights”,
+“sizes”: “390x844”,
+“type”: “image/png”,
+“form_factor”: “narrow”
+}
+]
+}
